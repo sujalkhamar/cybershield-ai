@@ -271,7 +271,7 @@ function App() {
             </h2>
           </div>
           
-          <div className="p-0 overflow-x-auto flex-1 h-[470px] overflow-y-auto custom-scrollbar">
+          <div className="p-0 flex-1 h-[470px] overflow-y-auto">
             {threats.length === 0 ? (
               <div className="h-full flex items-center justify-center text-emerald-500/50 font-mono text-sm">
                 NO THREATS DETECTED
@@ -329,22 +329,7 @@ function App() {
 
       </div>
       
-      {/* Global CSS for Custom Scrollbar */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #0f172a;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #334155;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #475569;
-        }
-      `}} />
+      {/* End of Grid */}
     </div>
   );
 }
