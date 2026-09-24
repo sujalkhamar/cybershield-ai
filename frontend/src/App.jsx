@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Shield, Server, Activity, AlertOctagon, Network, ShieldCheck,
   LayoutDashboard, Cpu, Database, Settings, Bell, Search, User,
-  Terminal, Target
+  Terminal, Target, Lock, Key, LogOut
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, 
@@ -10,8 +10,98 @@ import {
   PieChart, Pie, Legend
 } from 'recharts';
 
+function LoginScreen({ onLogin }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    
+    // Check credentials for different admins
+    const inputUser = username.toLowerCase().trim();
+    if((inputUser === 'sujal' || inputUser === 'twinkle') && password === 'admin') {
+      setIsAuthenticating(true);
+      setError(false);
+      
+      const userProfile = {
+        name: inputUser === 'sujal' ? 'Sujal Khamar' : 'Twinkle Kanparia',
+        initial: inputUser === 'sujal' ? 'S' : 'T'
+      };
+      
+      setTimeout(() => {
+        onLogin(userProfile);
+      }, 1500);
+    } else {
+      setError(true);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4 overflow-hidden relative">
+      <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[bottom_1px_center] dark:bg-grid-slate-400/[0.05] dark:bg-bottom dark:border-b dark:border-slate-100/5"></div>
+      
+      <div className="bg-[#1e293b] border border-slate-700/50 p-10 rounded-2xl shadow-2xl w-full max-w-md z-10">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center mb-4 border border-indigo-500/30 shadow-[0_0_15px_rgba(79,70,229,0.3)]">
+            <Shield className="w-10 h-10 text-indigo-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-wide">CyberShield-AI</h1>
+          <p className="text-slate-400 text-sm mt-1">Global Command Center Login</p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Admin ID</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input 
+                type="text" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full bg-slate-900/50 border border-slate-700/50 rounded-lg py-2.5 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                placeholder="admin"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Passcode</label>
+            <div className="relative">
+              <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-slate-900/50 border border-slate-700/50 rounded-lg py-2.5 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+          
+          {error && <p className="text-rose-500 text-xs font-bold animate-pulse text-center bg-rose-500/10 py-1.5 rounded-md">Authentication Failed. Try 'sujal' or 'twinkle' with passcode 'admin'.</p>}
+
+          <button 
+            type="submit" 
+            disabled={isAuthenticating}
+            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-lg transition-all flex items-center justify-center mt-6 shadow-[0_0_15px_rgba(79,70,229,0.4)] disabled:opacity-70 disabled:shadow-none"
+          >
+            {isAuthenticating ? (
+              <span className="flex items-center"><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div> Initializing Secure Session...</span>
+            ) : (
+              <span className="flex items-center"><Lock className="w-4 h-4 mr-2" /> Authenticate</span>
+            )}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function App() {
+  const [currentUser, setCurrentUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLockdown, setIsLockdown] = useState(false);
   const [filterMode, setFilterMode] = useState('all'); // 'all', 'zeroday', 'known'
   const [showNotifications, setShowNotifications] = useState(false);
   const [readAlertIds, setReadAlertIds] = useState(new Set());
@@ -123,6 +213,10 @@ function App() {
     { name: 'Zero-Day', value: zeroDayCount, color: '#f43f5e' } 
   ];
 
+  if (!currentUser) {
+    return <LoginScreen onLogin={(profile) => setCurrentUser(profile)} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex text-slate-800 font-sans overflow-hidden">
       
@@ -157,14 +251,19 @@ function App() {
         </nav>
         
         <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-          <div className="flex items-center">
-            <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
-              S
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold shadow-[0_0_10px_rgba(79,70,229,0.3)] border border-indigo-400">
+                {currentUser?.initial}
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-bold text-slate-700">{currentUser?.name}</p>
+                <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-wide mt-0.5">Lead AI Researcher</p>
+              </div>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-bold text-slate-700">Sujal & Twinkle</p>
-              <p className="text-xs text-slate-500 font-medium">SOC Administrators</p>
-            </div>
+            <button onClick={() => setCurrentUser(null)} className="text-slate-400 hover:text-rose-500 transition-colors p-1.5 hover:bg-rose-50 rounded-md" title="Logout">
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </aside>
@@ -192,6 +291,15 @@ function App() {
                 {flStatus?.current_round || 1}
               </span>
             </div>
+            
+            <button 
+              onClick={() => setIsLockdown(true)}
+              className="flex items-center bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-full border border-rose-200 transition-all font-bold group shadow-sm hover:shadow-rose-500/20"
+            >
+              <AlertOctagon className="w-4 h-4 mr-1.5 group-hover:animate-pulse" />
+              <span className="text-xs uppercase tracking-wide">Isolate Network</span>
+            </button>
+
             <div className="flex items-center bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-2"></div>
               <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">System Live</span>
@@ -642,9 +750,9 @@ function App() {
                     <option value="zeroday">Show Zero-Days Only</option>
                     <option value="known">Show Known Threats Only</option>
                   </select>
-                  <button onClick={handleExportCSV} className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl flex items-center shadow-sm transition-colors text-indigo-600">
-                    <Database className="w-4 h-4 mr-2" />
-                    <span className="text-xs font-bold">Export CSV</span>
+                  <button onClick={handleExportCSV} className="bg-indigo-600 hover:bg-indigo-500 border border-indigo-500 px-4 py-2 rounded-xl flex items-center shadow-[0_0_10px_rgba(79,70,229,0.3)] transition-all text-white group">
+                    <Database className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-bold uppercase tracking-wide">Download Threat Report</span>
                   </button>
                   <div className="bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-xl flex items-center shadow-sm">
                     <span className="text-xs font-bold text-indigo-700">Records: <span className="font-mono">{filteredThreats.length}</span></span>
@@ -738,6 +846,37 @@ function App() {
 
         </div>
       </main>
+      {/* LOCKDOWN OVERLAY */}
+      {isLockdown && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-rose-500/10 pointer-events-none animate-pulse"></div>
+          <div className="flex flex-col items-center text-center p-12 border-2 border-rose-500/50 rounded-3xl bg-slate-900/80 shadow-[0_0_100px_rgba(244,63,94,0.3)] max-w-2xl w-full relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rose-500 to-transparent animate-[pulse_1s_ease-in-out_infinite]"></div>
+            
+            <AlertOctagon className="w-24 h-24 text-rose-500 mb-6 animate-[bounce_2s_infinite]" />
+            <h1 className="text-4xl font-black text-rose-500 tracking-tighter uppercase mb-2">Emergency Lockdown Initiated</h1>
+            <p className="text-xl font-bold text-slate-300 uppercase tracking-widest mb-8">All External Connections Severed</p>
+            
+            <div className="grid grid-cols-2 gap-4 w-full mb-10">
+              <div className="bg-black/50 border border-slate-700 rounded-xl p-4 flex flex-col items-center">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Inbound Traffic</span>
+                <span className="text-rose-500 font-bold font-mono">0.00 Kbps</span>
+              </div>
+              <div className="bg-black/50 border border-slate-700 rounded-xl p-4 flex flex-col items-center">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Outbound Traffic</span>
+                <span className="text-rose-500 font-bold font-mono">0.00 Kbps</span>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setIsLockdown(false)}
+              className="px-8 py-3 bg-white text-slate-900 font-black uppercase tracking-wider rounded-xl hover:bg-slate-200 transition-colors shadow-xl"
+            >
+              Restore Network Operations
+            </button>
+          </div>
+        </div>
+      )}
 
       <style dangerouslySetInnerHTML={{__html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }

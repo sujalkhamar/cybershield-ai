@@ -91,7 +91,7 @@ python train_models.py
 Launch the FastAPI inference engine:
 ```bash
 cd backend
-uvicorn main:app --reload --port 8000
+python -m uvicorn main:app --reload --port 8000
 ```
 
 ### Phase 3: Start the Frontend SOC Dashboard (Terminal 2)
@@ -123,6 +123,6 @@ To individually evaluate the core logic used in our research, you can run the st
 ## 👨‍💻 Research & Authors
 - **Sujal Khamar** - *Department of Computer Science & Engineering, Indus University*
 - **Twinkle Kanparia** - *Department of Computer Science & Engineering, Indus University*
-- **Prof. Dhivya Vijayakannan** - *Project Guide*
+- **Asst. Prof. Dhivya Vijayakannan** - *Project Guide*
 
 *Developed as part of an IEEE-format research initiative on Privacy-Preserving Intrusion Detection Systems.*
