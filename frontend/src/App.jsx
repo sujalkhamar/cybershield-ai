@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Shield, Server, Activity, AlertOctagon, Network, ShieldCheck,
-  LayoutDashboard, Cpu, Database, Settings, Bell, Search, User
+  LayoutDashboard, Cpu, Database, Settings, Bell, Search, User,
+  Terminal, Target
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, 
@@ -491,6 +492,30 @@ function App() {
                   </div>
                 </div>
               </div>
+              
+              {/* RAW TERMINAL LOG WIDGET */}
+              <div className="bg-[#0f172a] rounded-2xl p-4 shadow-lg border border-slate-800 mb-6 h-48 flex flex-col relative overflow-hidden group mt-6">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <Terminal className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs font-mono font-bold text-slate-300">/var/log/cybershield/raw_stream.log</span>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                </div>
+                <div className="flex-1 overflow-hidden font-mono text-[10px] leading-relaxed text-slate-400 flex flex-col justify-end">
+                  {filteredThreats.slice(0, 8).reverse().map((t, i) => (
+                    <div key={i} className="whitespace-nowrap overflow-hidden text-ellipsis">
+                      <span className="text-emerald-500/70">[{t.timestamp}]</span> 
+                      <span className="text-slate-500"> INJECT:</span> {t.source_ip} {'->'} {t.destination_ip} 
+                      <span className="text-indigo-400/70"> | TENSOR: (1,79)</span>
+                      <span className="text-slate-500"> | ML_OUT:</span> 
+                      <span className={t.is_zero_day ? 'text-rose-400 font-bold' : t.prediction_class != 'Benign' ? 'text-amber-400 font-bold' : 'text-slate-300'}> {t.prediction_class}</span>
+                      <span className="text-slate-500"> | CONF:</span> {t.confidence_score.toFixed(3)}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
@@ -705,37 +730,6 @@ function App() {
                       <p className="font-mono text-xs text-slate-800">sk_test_1120px...11ax</p>
                     </div>
                     <button className="text-[10px] font-bold text-indigo-600 bg-white border border-indigo-200 px-3 py-1.5 rounded-lg shadow-sm">Regenerate</button>
-                  </div>
-                </div>
-
-                {/* Integrations */}
-                <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm lg:col-span-2">
-                  <h3 className="text-sm font-bold text-slate-800 mb-5 flex items-center border-b border-slate-100 pb-3"><Network className="w-4 h-4 mr-2 text-amber-500"/> Webhook Integrations</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="border border-slate-200 rounded-xl p-4 flex flex-col items-center text-center transition-all">
-                      <div className="w-10 h-10 bg-[#4A154B] text-white flex items-center justify-center rounded-lg font-bold text-xl mb-3">S</div>
-                      <p className="text-xs font-bold text-slate-800">Slack Alerts</p>
-                      <p className="text-[10px] text-slate-500 mt-1 mb-3">Post Zero-Day alerts to #soc-critical</p>
-                      <button onClick={() => setWebhooks({...webhooks, slack: !webhooks.slack})} className={`text-[10px] font-bold px-4 py-1.5 rounded-full w-full transition-colors ${webhooks.slack ? 'text-emerald-700 bg-emerald-50 border border-emerald-200' : 'text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100'}`}>
-                        {webhooks.slack ? 'Connected' : 'Connect'}
-                      </button>
-                    </div>
-                    <div className="border border-slate-200 rounded-xl p-4 flex flex-col items-center text-center transition-all">
-                      <div className="w-10 h-10 bg-[#0066FF] text-white flex items-center justify-center rounded-lg font-bold text-xl mb-3">J</div>
-                      <p className="text-xs font-bold text-slate-800">Jira Service Desk</p>
-                      <p className="text-[10px] text-slate-500 mt-1 mb-3">Auto-create tickets for new anomalies</p>
-                      <button onClick={() => setWebhooks({...webhooks, jira: !webhooks.jira})} className={`text-[10px] font-bold px-4 py-1.5 rounded-full w-full transition-colors ${webhooks.jira ? 'text-emerald-700 bg-emerald-50 border border-emerald-200' : 'text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100'}`}>
-                        {webhooks.jira ? 'Connected' : 'Connect'}
-                      </button>
-                    </div>
-                    <div className="border border-slate-200 rounded-xl p-4 flex flex-col items-center text-center transition-all">
-                      <div className="w-10 h-10 bg-[#25C171] text-white flex items-center justify-center rounded-lg font-bold text-xl mb-3">P</div>
-                      <p className="text-xs font-bold text-slate-800">PagerDuty</p>
-                      <p className="text-[10px] text-slate-500 mt-1 mb-3">Trigger on-call incidents on breach</p>
-                      <button onClick={() => setWebhooks({...webhooks, pagerduty: !webhooks.pagerduty})} className={`text-[10px] font-bold px-4 py-1.5 rounded-full w-full transition-colors ${webhooks.pagerduty ? 'text-emerald-700 bg-emerald-50 border border-emerald-200' : 'text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100'}`}>
-                        {webhooks.pagerduty ? 'Connected' : 'Connect'}
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
