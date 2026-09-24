@@ -21,8 +21,7 @@ cybershield.db
 logs/
 
 # 3. Machine Learning Models & Weights
-*.pth
-*.pt
+# (Note: .pth files are allowed so the project works out-of-the-box when pulled)
 *.onnx
 *.h5
 *.pkl
