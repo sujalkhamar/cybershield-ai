@@ -13,24 +13,30 @@ print("🛡️ CyberShield-AI Live Traffic Simulator")
 print(f"Loading real telemetry from {DATASET_PATH}...")
 
 try:
-    # Load dataset and drop NaN/inf values just like preprocessing
-    df = pd.read_csv(DATASET_PATH)
-    df = df.replace([np.inf, -np.inf], np.nan).dropna()
+    # Load dataset, coercing errors to handle repeated headers
+    df = pd.read_csv(DATASET_PATH, low_memory=False)
+    # Drop the Label column (which is usually the last one, 78th index)
+    features_df = df.iloc[:, :-1]
     
-    # We only need the first 79 numerical features for the model
-    # (Assuming the last column is the Label)
-    features_df = df.iloc[:, :79]
+    # Convert all to numeric, replacing strings with NaN
+    features_df = features_df.apply(pd.to_numeric, errors='coerce')
+    # Drop any row that got turned into NaN or inf
+    features_df = features_df.replace([np.inf, -np.inf], np.nan).dropna()
     
     print(f"✅ Successfully loaded {len(features_df)} network flows.")
     print("🚀 Commencing Live Traffic Injection to the Backend API...")
     print("Press CTRL+C to stop.\n")
     
     while True:
-        # Pick a random network flow from the dataset
+        # Pick a random network flow
         random_index = random.randint(0, len(features_df) - 1)
         row = features_df.iloc[random_index].values.tolist()
         
-        # Ensure all values are standard floats (to avoid JSON serialization errors)
+        # The dataset has 78 features, but our AI models were built expecting 79 
+        # (Based on the PPT saying '79 features'). We append a 0 to match dimensions!
+        if len(row) == 78:
+            row.append(0.0)
+            
         clean_row = [float(x) for x in row]
         
         # Generate random IPs to simulate a real network environment
