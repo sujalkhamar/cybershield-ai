@@ -109,6 +109,12 @@ python simulate_traffic.py
 ```
 *Your React Dashboard will now light up with real-time analytics, reconstruction loss charting, and threat logs!*
 
+### ⚠️ Bonus: Trigger a Manual Zero-Day Exploit
+To demonstrate the system's anomaly detection capabilities during a live presentation, you can manually inject a massive mathematical anomaly that instantly triggers an "Emergency Lockdown" alert on the dashboard:
+```bash
+python attack_zeroday.py
+```
+
 ---
 
 ## 📊 Running Academic Modules (Review Demos)
