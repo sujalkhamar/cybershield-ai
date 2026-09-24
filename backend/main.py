@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, predict
+from app.routers import auth, predict, fl_status
 
 app = FastAPI(title="CyberShield-AI API", version="1.0.0")
 
@@ -15,7 +15,7 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(predict.router, prefix="/api/v1", tags=["Prediction Engine"])
-# app.include_router(fl_status.router, prefix="/api/v1/fl", tags=["Federated Learning"])
+app.include_router(fl_status.router, prefix="/api/v1/fl", tags=["Federated Learning"])
 
 @app.get("/")
 def root():
