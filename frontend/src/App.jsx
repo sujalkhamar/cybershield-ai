@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Shield, Server, Activity, AlertOctagon, Network, ShieldCheck,
   LayoutDashboard, Cpu, Database, Settings, Bell, Search, User,
-  Terminal, Target, Lock, Key, LogOut
+  Terminal, Target, Lock, Key, LogOut, UploadCloud, FileText, CheckCircle
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, 
@@ -118,6 +118,11 @@ function App() {
   const [shapData, setShapData] = useState([]);
   const [isExplaining, setIsExplaining] = useState(false);
   const [mseData, setMseData] = useState(Array.from({length: 20}, (_, i) => ({ time: i, mse: 1.5 + Math.random() })));
+  
+  // Scanner state
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResult, setScanResult] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
@@ -143,6 +148,31 @@ function App() {
       .then(res => res.json())
       .then(data => setFlStatus(data))
       .catch(err => console.error(err));
+  };
+
+  const handleFileUpload = (e) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+    
+    setIsScanning(true);
+    setScanResult(null);
+    
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    
+    fetch(`${API_BASE_URL}/api/v1/scan`, {
+      method: 'POST',
+      body: formData,
+    })
+      .then(res => res.json())
+      .then(data => {
+        setScanResult(data);
+        setIsScanning(false);
+      })
+      .catch(err => {
+        console.error('Upload error:', err);
+        setIsScanning(false);
+      });
   };
 
   useEffect(() => {
@@ -234,6 +264,9 @@ function App() {
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 ml-2">Analytics</div>
           <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center px-3 py-2.5 rounded-lg transition-all font-medium text-sm ${activeTab === 'dashboard' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}>
             <LayoutDashboard className={`w-5 h-5 mr-3 ${activeTab === 'dashboard' ? 'text-indigo-600' : 'text-slate-400'}`} /> Dashboard
+          </button>
+          <button onClick={() => setActiveTab('scanner')} className={`w-full flex items-center px-3 py-2.5 rounded-lg transition-all font-medium text-sm ${activeTab === 'scanner' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}>
+            <FileText className={`w-5 h-5 mr-3 ${activeTab === 'scanner' ? 'text-indigo-600' : 'text-slate-400'}`} /> Threat Scanner
           </button>
           
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-8 mb-3 ml-2">Machine Learning</div>
@@ -347,6 +380,64 @@ function App() {
         {/* DASHBOARD SCROLL AREA */}
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative">
           
+          {activeTab === 'scanner' && (
+            <div className="animate-in fade-in duration-500">
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Bulk Threat Scanner</h2>
+                <p className="text-slate-500 text-sm mt-1">Upload a network log file (CSV) for batch AI analysis.</p>
+              </div>
+              
+              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-10 flex flex-col items-center justify-center text-center">
+                <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mb-6">
+                  <UploadCloud className="w-10 h-10" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-800 mb-2">Upload Network Logs</h3>
+                <p className="text-slate-500 text-sm mb-8 max-w-md">
+                  Drag and drop your network telemetry CSV file here, or click to browse. The AI engine will scan up to 500 flows for Zero-Day and Known Threats.
+                </p>
+                
+                <form onSubmit={handleFileUpload} className="flex flex-col items-center w-full max-w-sm">
+                  <input 
+                    type="file" 
+                    accept=".csv"
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 mb-6 border border-slate-200 rounded-lg p-2"
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={!selectedFile || isScanning}
+                    className={`w-full py-3 rounded-xl font-bold text-white transition-all shadow-md ${(!selectedFile || isScanning) ? 'bg-slate-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'}`}
+                  >
+                    {isScanning ? 'Scanning Network Flows...' : 'Start AI Scan'}
+                  </button>
+                </form>
+              </div>
+
+              {scanResult && (
+                <div className="mt-8 bg-white border border-slate-200 rounded-2xl shadow-sm p-8 animate-in slide-in-from-bottom-4 duration-500">
+                  <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center border-b border-slate-100 pb-4">
+                    <CheckCircle className="w-5 h-5 mr-2 text-emerald-500" /> Scan Report: {scanResult.filename}
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-5 text-center">
+                      <div className="text-3xl font-black text-slate-700">{scanResult.total_scanned}</div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Flows Scanned</div>
+                    </div>
+                    <div className="bg-rose-50 border border-rose-100 rounded-xl p-5 text-center">
+                      <div className="text-3xl font-black text-rose-600">{scanResult.zero_days_detected}</div>
+                      <div className="text-xs font-bold text-rose-400 uppercase tracking-widest mt-1">Zero-Days Found</div>
+                    </div>
+                    <div className="bg-amber-50 border border-amber-100 rounded-xl p-5 text-center">
+                      <div className="text-3xl font-black text-amber-600">{scanResult.known_threats_detected}</div>
+                      <div className="text-xs font-bold text-amber-500 uppercase tracking-widest mt-1">Known Threats</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'dashboard' && (
             <div className="animate-in fade-in duration-500">
               <div className="mb-8 flex justify-between items-end">
