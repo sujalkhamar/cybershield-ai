@@ -308,9 +308,6 @@ function App() {
                 <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-wide mt-0.5">Lead AI Researcher</p>
               </div>
             </div>
-            <button onClick={() => setCurrentUser(null)} className="text-slate-400 hover:text-rose-500 transition-colors p-1.5 hover:bg-rose-50 rounded-md" title="Logout">
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </aside>
