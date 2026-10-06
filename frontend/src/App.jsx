@@ -99,7 +99,8 @@ function LoginScreen({ onLogin }) {
 }
 
 function App() {
-  const [currentUser, setCurrentUser] = useState(null);
+  // Bypass login screen by setting a default admin user
+  const [currentUser, setCurrentUser] = useState({ name: 'System Admin', initial: 'SA' });
   const [searchQuery, setSearchQuery] = useState('');
   const [isLockdown, setIsLockdown] = useState(false);
   const [filterMode, setFilterMode] = useState('all'); // 'all', 'zeroday', 'known'

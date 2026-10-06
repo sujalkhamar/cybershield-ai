@@ -55,3 +55,55 @@ def get_recent_threats(limit: int = 100, db: Session = Depends(get_db)):
     """
     threats = db.query(Prediction).order_by(Prediction.timestamp.desc()).limit(limit).all()
     return threats
+
+from fastapi import UploadFile, File
+import pandas as pd
+import io
+
+@router.post("/scan", status_code=status.HTTP_200_OK)
+async def bulk_scan_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """
+    Enterprise File Upload Scanner.
+    Accepts a CSV of network flows, processes them in bulk, and returns a threat report.
+    """
+    contents = await file.read()
+    
+    try:
+        df = pd.read_csv(io.StringIO(contents.decode('utf-8')))
+        
+        # We assume the last column is label, so we drop it
+        if len(df.columns) > 78:
+             features_df = df.iloc[:, :-1]
+        else:
+             features_df = df
+             
+        features_df = features_df.apply(pd.to_numeric, errors='coerce').dropna()
+        
+        total_scanned = 0
+        zero_days = 0
+        known_threats = 0
+        
+        # Limit to 500 rows for demo performance
+        for index, row in features_df.head(500).iterrows():
+            row_list = row.values.tolist()
+            if len(row_list) == 78:
+                row_list.append(0.0)
+                
+            clean_row = [float(x) for x in row_list]
+            predicted_class, confidence, mse_loss, is_zero_day_flag = run_ai_inference(clean_row)
+            
+            total_scanned += 1
+            if is_zero_day_flag:
+                zero_days += 1
+            elif predicted_class != "Benign":
+                known_threats += 1
+                
+        return {
+            "filename": file.filename,
+            "total_scanned": total_scanned,
+            "zero_days_detected": zero_days,
+            "known_threats_detected": known_threats,
+            "status": "success"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error parsing CSV file: {str(e)}")
