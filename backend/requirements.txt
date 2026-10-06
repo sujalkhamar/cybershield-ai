@@ -9,3 +9,4 @@ shap
 pandas
 scikit-learn
 numpy
+email-validator
