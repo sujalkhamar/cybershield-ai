@@ -123,6 +123,9 @@ function App() {
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  
+  // Simulation State
+  const [isSimulating, setIsSimulating] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
@@ -173,6 +176,14 @@ function App() {
         console.error('Upload error:', err);
         setIsScanning(false);
       });
+  };
+
+  const toggleSimulation = () => {
+    const endpoint = isSimulating ? '/api/v1/simulation/stop' : '/api/v1/simulation/start';
+    fetch(`${API_BASE_URL}${endpoint}`, { method: 'POST' })
+      .then(res => res.json())
+      .then(() => setIsSimulating(!isSimulating))
+      .catch(err => console.error(err));
   };
 
   useEffect(() => {
@@ -445,7 +456,13 @@ function App() {
                   <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Global Threat Analytics</h2>
                   <p className="text-slate-500 text-sm mt-1">Enterprise Command Center - Region: Global (All Nodes)</p>
                 </div>
-                <div className="flex space-x-3">
+                <div className="flex space-x-3 items-center">
+                  <button 
+                    onClick={toggleSimulation}
+                    className={`text-xs font-bold px-4 py-2 rounded-lg border shadow-sm flex items-center transition-colors ${isSimulating ? 'bg-rose-100 text-rose-700 border-rose-200 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200'}`}
+                  >
+                    {isSimulating ? 'Stop Demo Traffic' : 'Start Live Demo'}
+                  </button>
                   <div className="text-xs text-slate-600 font-bold bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm flex items-center">
                     <Activity className="w-3.5 h-3.5 mr-2 text-indigo-500" /> Model Latency: 12ms
                   </div>

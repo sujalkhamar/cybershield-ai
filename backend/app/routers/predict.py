@@ -1,13 +1,74 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Security
+from fastapi import APIRouter, Depends, HTTPException, status, Security, BackgroundTasks
 from fastapi.security.api_key import APIKeyHeader
 from sqlalchemy.orm import Session
-from app.database.connection import get_db
+from app.database.connection import get_db, SessionLocal
 from app.models.prediction import Prediction
 from app.schemas.predict_schema import PredictionRequest, PredictionResponse
 from app.ml_engine.inference import run_ai_inference
+import asyncio
+import random
 
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+# Global simulation state
+SIMULATION_RUNNING = False
+
+async def run_simulation_loop():
+    global SIMULATION_RUNNING
+    import pandas as pd
+    import os
+    
+    csv_path = "app/demo_traffic.csv"
+    if not os.path.exists(csv_path):
+        SIMULATION_RUNNING = False
+        return
+        
+    db = SessionLocal()
+    try:
+        df = pd.read_csv(csv_path, low_memory=False)
+        features_df = df.iloc[:, :-1].apply(pd.to_numeric, errors='coerce').dropna()
+        rows = features_df.values.tolist()
+        
+        while SIMULATION_RUNNING:
+            row = random.choice(rows)
+            if len(row) == 78:
+                row.append(0.0)
+            clean_row = [float(x) for x in row]
+            
+            predicted_class, confidence, mse_loss, is_zero_day = run_ai_inference(clean_row)
+            
+            new_pred = Prediction(
+                source_ip=f"192.168.1.{random.randint(2, 254)}",
+                destination_ip=f"10.0.{random.randint(0,5)}.{random.randint(1, 254)}",
+                prediction_class=predicted_class,
+                confidence_score=confidence,
+                is_zero_day=is_zero_day,
+                reconstruction_mse=round(mse_loss, 4)
+            )
+            db.add(new_pred)
+            db.commit()
+            
+            await asyncio.sleep(2.0)
+    finally:
+        db.close()
+
+router = APIRouter()
+
+@router.post("/simulation/start")
+async def start_simulation(background_tasks: BackgroundTasks):
+    global SIMULATION_RUNNING
+    if SIMULATION_RUNNING:
+        return {"status": "already running"}
+    SIMULATION_RUNNING = True
+    background_tasks.add_task(run_simulation_loop)
+    return {"status": "started"}
+
+@router.post("/simulation/stop")
+def stop_simulation():
+    global SIMULATION_RUNNING
+    SIMULATION_RUNNING = False
+    return {"status": "stopped"}
 
 # In a real production system, this would check a PostgreSQL database or Redis cache
 # For now, we simulate a valid subscribed user API key
