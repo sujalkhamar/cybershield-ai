@@ -118,8 +118,10 @@ function App() {
   const [isExplaining, setIsExplaining] = useState(false);
   const [mseData, setMseData] = useState(Array.from({length: 20}, (_, i) => ({ time: i, mse: 1.5 + Math.random() })));
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+
   const fetchThreats = () => {
-    fetch('http://127.0.0.1:8000/api/v1/threats')
+    fetch(`${API_BASE_URL}/api/v1/threats`)
       .then(res => res.json())
       .then(data => {
         setThreats(data);
@@ -136,7 +138,7 @@ function App() {
   };
 
   const fetchFLStatus = () => {
-    fetch('http://127.0.0.1:8000/api/v1/fl/status')
+    fetch(`${API_BASE_URL}/api/v1/fl/status`)
       .then(res => res.json())
       .then(data => setFlStatus(data))
       .catch(err => console.error(err));

@@ -50,9 +50,14 @@ try:
             "features": clean_row
         }
         
+        # Include API Key for Monetization/SaaS tier
+        headers = {
+            "X-API-Key": "sk_prod_a1b2c3d4e5f6g7h8"
+        }
+        
         # Send to FastAPI Backend
         try:
-            response = requests.post(API_URL, json=payload)
+            response = requests.post(API_URL, json=payload, headers=headers)
             if response.status_code == 201:
                 data = response.json()
                 classification = data.get("prediction_class")

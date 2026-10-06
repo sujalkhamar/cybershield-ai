@@ -2,8 +2,8 @@ fastapi
 uvicorn
 sqlalchemy
 pydantic
-sqlite3
-pytorch
+torch
+psycopg2-binary
 flwr
 shap
 pandas
