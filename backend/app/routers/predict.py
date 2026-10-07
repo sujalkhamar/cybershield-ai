@@ -56,10 +56,20 @@ async def run_simulation_loop():
 router = APIRouter()
 
 @router.post("/simulation/start")
-async def start_simulation(background_tasks: BackgroundTasks):
+async def start_simulation(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     global SIMULATION_RUNNING
     if SIMULATION_RUNNING:
         return {"status": "already running"}
+        
+    # Reset database threats so it starts from the beginning
+    db.query(Prediction).delete()
+    db.commit()
+    
+    # Reset Federated Learning round counter
+    from app.routers import fl_status
+    import time
+    fl_status.START_TIME = time.time()
+    
     SIMULATION_RUNNING = True
     background_tasks.add_task(run_simulation_loop)
     return {"status": "started"}
