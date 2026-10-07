@@ -4,6 +4,9 @@ from app.routers import auth, predict, fl_status, explain
 
 app = FastAPI(title="CyberShield-AI API", version="1.0.0")
 
+from app.database.connection import engine, Base
+Base.metadata.create_all(bind=engine)
+
 # Allow frontend to connect
 app.add_middleware(
     CORSMiddleware,
