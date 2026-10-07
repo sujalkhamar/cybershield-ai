@@ -181,9 +181,15 @@ function App() {
   const toggleSimulation = () => {
     const endpoint = isSimulating ? '/api/v1/simulation/stop' : '/api/v1/simulation/start';
     fetch(`${API_BASE_URL}${endpoint}`, { method: 'POST' })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
       .then(() => setIsSimulating(!isSimulating))
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error("Failed to toggle simulation:", err);
+        alert("Failed to connect to the backend simulation engine. Ensure the backend is running and URL is correct.");
+      });
   };
 
   useEffect(() => {
