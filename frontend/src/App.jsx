@@ -196,15 +196,21 @@ function App() {
       });
   };
 
+  // Fetch initial data once on mount
   useEffect(() => {
     fetchThreats();
     fetchFLStatus();
+  }, []);
+
+  // Poll for new data only when simulating
+  useEffect(() => {
+    if (!isSimulating) return;
     const interval = setInterval(() => {
       fetchThreats();
       fetchFLStatus();
     }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isSimulating]);
 
   const handleExplain = (threat) => {
     setSelectedThreat(threat);
