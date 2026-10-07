@@ -19,7 +19,7 @@ async def run_simulation_loop():
     import pandas as pd
     import os
     
-    csv_path = "app/demo_traffic.csv"
+    csv_path = os.path.join(os.path.dirname(__file__), "../demo_traffic.csv")
     if not os.path.exists(csv_path):
         SIMULATION_RUNNING = False
         return
@@ -80,8 +80,6 @@ def get_api_key(api_key_header: str = Security(api_key_header)):
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN, detail="Could not validate API KEY"
     )
-
-router = APIRouter()
 
 @router.post("/predict", response_model=PredictionResponse, status_code=status.HTTP_201_CREATED)
 def run_prediction(request: PredictionRequest, db: Session = Depends(get_db), api_key: str = Depends(get_api_key)):
