@@ -133,14 +133,18 @@ function App() {
     fetch(`${API_BASE_URL}/api/v1/threats`)
       .then(res => res.json())
       .then(data => {
-        setThreats(data);
-        if(data.length > 0) {
-          const latest = data[0];
-          setMseData(prev => {
-            const rawMse = latest.reconstruction_mse || (latest.is_zero_day ? 8 + Math.random()*5 : Math.random()*2.5);
-            const clampedMse = Math.min(rawMse, 25);
-            return [...prev.slice(1), { time: prev[prev.length-1].time + 1, mse: clampedMse }];
-          });
+        if (Array.isArray(data)) {
+          setThreats(data);
+          if(data.length > 0) {
+            const latest = data[0];
+            setMseData(prev => {
+              const rawMse = latest.reconstruction_mse || (latest.is_zero_day ? 8 + Math.random()*5 : Math.random()*2.5);
+              const clampedMse = Math.min(rawMse, 25);
+              return [...prev.slice(1), { time: prev[prev.length-1].time + 1, mse: clampedMse }];
+            });
+          }
+        } else {
+          console.error("Expected array of threats, got:", data);
         }
       })
       .catch(err => console.error(err));
